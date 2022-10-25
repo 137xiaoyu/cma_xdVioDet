@@ -12,7 +12,7 @@ def CLAS(logits, label, seq_len, criterion, is_topk=True):
             tmp = torch.mean(logits[i, :seq_len[i]]).view(1)
         instance_logits = torch.cat((instance_logits, tmp))
 
-    instance_logits = torch.sigmoid(instance_logits)
+    # instance_logits = torch.sigmoid(instance_logits)
     clsloss = criterion(instance_logits, label)
     return clsloss
 
