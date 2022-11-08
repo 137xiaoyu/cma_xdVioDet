@@ -1,5 +1,6 @@
 import torch
 from loss import CLAS
+from CMA_MIL import CMAL
 
 
 def train(dataloader, model, optimizer, criterion):
@@ -13,14 +14,23 @@ def train(dataloader, model, optimizer, criterion):
             inputs = inputs.float().cuda(non_blocking=True)
             label = label.float().cuda(non_blocking=True)
 
-            logits = model(inputs)
-            loss = CLAS(logits, label, seq_len, criterion)
+            logits, visual_rep, audio_rep = model(inputs)
+
+            lamda_a2b = 0.05
+            lamda_a2n = 0.075
+            cmaloss_a2v_a2b, cmaloss_a2v_a2n, cmaloss_v2a_a2b, cmaloss_v2a_a2n = CMAL(label, logits, seq_len, audio_rep, visual_rep)
+
+            clsloss = CLAS(logits, label, seq_len, criterion)
+
+            loss = clsloss + lamda_a2b * cmaloss_a2v_a2b + lamda_a2b * cmaloss_v2a_a2b + lamda_a2n * cmaloss_a2v_a2n + lamda_a2n * cmaloss_v2a_a2n
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
             t_loss.append(loss)
+
+    print(f'loss {loss:.4f}\tclsloss {clsloss:.4f}\tcmaloss_a2v_a2b {cmaloss_a2v_a2b:.4f}\tcmaloss_v2a_a2b {cmaloss_v2a_a2b:.4f}\tcmaloss_a2v_a2n {cmaloss_a2v_a2n:.4f}\tcmaloss_v2a_a2n {cmaloss_v2a_a2n:.4f}')
 
     return sum(t_loss)/len(t_loss)
 
@@ -50,4 +60,3 @@ def train(dataloader, model, optimizer, criterion):
 #     print(f'loss_v {loss_v:.4f}\tloss_a {loss_a:.4f}')
 
 #     return sum(t_loss)/len(t_loss)
-

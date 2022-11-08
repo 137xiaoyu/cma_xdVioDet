@@ -67,7 +67,7 @@ if __name__ == '__main__':
             best_ap = ap
             best_model_wts = copy.deepcopy(model.state_dict())
 
-        print('[Epoch {}/{}]: cls loss: {} | epoch AP: {:.4f} | Best AP: {:.4f}'.format(epoch + 1, args.max_epoch, cls_loss, ap, best_ap))
+        print('[Epoch {}/{}]: loss: {} | epoch AP: {:.4f} | Best AP: {:.4f}'.format(epoch + 1, args.max_epoch, cls_loss, ap, best_ap))
     model.load_state_dict(best_model_wts)
     torch.save(model.state_dict(), './ckpt/' + args.model_name + '.pkl')
 

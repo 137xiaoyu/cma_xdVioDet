@@ -11,7 +11,7 @@ def test(dataloader, model, gt):
         for i, inputs in enumerate(dataloader):
             inputs = inputs.cuda()
 
-            logits = model(inputs)
+            logits, visual_rep, audio_rep = model(inputs)
             logits = torch.mean(logits, 0)
             pred = torch.cat((pred, logits))
 

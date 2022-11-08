@@ -6,7 +6,7 @@ def CLAS(logits, label, seq_len, criterion, is_topk=True):
     instance_logits = torch.zeros(0).cuda()
     for i in range(logits.shape[0]):
         if is_topk:
-            tmp, _ = torch.topk(logits[i][:seq_len[i]], k=int(seq_len[i]//16+1), largest=True)
+            tmp, _ = torch.topk(logits[i][:seq_len[i]], k=int(torch.div(seq_len[i], 16, rounding_mode='trunc') + 1), largest=True)
             tmp = torch.mean(tmp).view(1)
         else:
             tmp = torch.mean(logits[i, :seq_len[i]]).view(1)
