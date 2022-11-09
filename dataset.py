@@ -91,7 +91,7 @@ class Dataset(data.Dataset):
         if self.tranform is not None:
             features = self.tranform(features)
         if self.test_mode:
-            return features
+            return features, label
 
         else:
             features = process_feat(features, self.max_seqlen, is_random=False)

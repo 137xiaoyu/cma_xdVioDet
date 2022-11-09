@@ -4,22 +4,42 @@ import torch
 
 
 def test(dataloader, model, gt):
+    all_raw_visual_features = []
+    all_raw_audio_features = []
+    all_visual_features = []
+    all_audio_features = []
+    all_labels = []
+
     with torch.no_grad():
         model.eval()
         pred = torch.zeros(0).cuda()
 
-        for i, inputs in enumerate(dataloader):
+        for i, (inputs, labels) in enumerate(dataloader):
             inputs = inputs.cuda()
 
             logits, visual_rep, audio_rep = model(inputs)
             logits = torch.mean(logits, 0)
             pred = torch.cat((pred, logits))
 
+            all_raw_visual_features.append(inputs[:, :, :1024].mean(0).mean(0).cpu())
+            all_raw_audio_features.append(inputs[:, :, 1024:].mean(0).mean(0).cpu())
+            all_visual_features.append(visual_rep.mean(0).mean(0).cpu())
+            all_audio_features.append(audio_rep.mean(0).mean(0).cpu())
+            all_labels.append(labels.mean(0, keepdim=True).cpu())
+
         pred = list(pred.cpu().detach().numpy())
         precision, recall, th = precision_recall_curve(list(gt), np.repeat(pred, 16))
         pr_auc = auc(recall, precision)
 
-        return pr_auc
+        all_raw_visual_features = torch.stack(all_raw_visual_features)
+        all_raw_audio_features = torch.stack(all_raw_audio_features)
+        all_visual_features = torch.stack(all_visual_features)
+        all_audio_features = torch.stack(all_audio_features)
+        all_labels = torch.cat(all_labels)
+
+        ret = (all_raw_visual_features, all_raw_audio_features, all_visual_features, all_audio_features, all_labels)
+
+        return pr_auc, ret
 
 
 # def test(dataloader, model, gt):

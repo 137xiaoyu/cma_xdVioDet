@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     is_topk = True
     gt = np.load(args.gt)
-    random_ap = test(test_loader, model, gt)
+    random_ap, _ = test(test_loader, model, gt)
     print('Random initialized AP: {:.4f}\n'.format(random_ap))
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -62,10 +62,11 @@ if __name__ == '__main__':
         cls_loss = train(train_loader, model, optimizer, criterion)
         scheduler.step()
 
-        ap = test(test_loader, model, gt)
+        ap, _ = test(test_loader, model, gt)
         if ap > best_ap:
             best_ap = ap
             best_model_wts = copy.deepcopy(model.state_dict())
+            torch.save(model.state_dict(), f'./ckpt/{args.model_name}_{epoch + 1}_{ap * 100:.3f}.pkl')
 
         print('[Epoch {}/{}]: loss: {} | epoch AP: {:.4f} | Best AP: {:.4f}'.format(epoch + 1, args.max_epoch, cls_loss, ap, best_ap))
     model.load_state_dict(best_model_wts)

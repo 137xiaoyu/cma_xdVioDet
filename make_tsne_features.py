@@ -20,12 +20,27 @@ if __name__ == '__main__':
                               num_workers=args.workers, pin_memory=True)
     model = Model(args)
     model = model.to(device)
-    model_dict = model.load_state_dict(
-        {k.replace('module.', ''): v for k, v in torch.load('./ckpt/xd_a2v_2.pkl').items()})
+
+    if args.ckpt:
+        checkpoint = torch.load(args.ckpt)
+        model.load_state_dict(checkpoint)
+
     gt = np.load(args.gt)
     st = time.time()
 
-    pr_auc, _ = test(test_loader, model, gt)
+    pr_auc, ret = test(test_loader, model, gt)
     time_elapsed = time.time() - st
     print('test AP: {:.4f}\n'.format(pr_auc))
     print('Test complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+
+    raw_visual_features, raw_audio_features, visual_features, audio_features, labels = ret
+
+    feature_save_dir = './features_81.607/'
+    if not os.path.exists(feature_save_dir):
+        os.makedirs(feature_save_dir)
+
+    # np.savetxt(os.path.join(feature_save_dir, 'raw_visual_features.txt'), raw_visual_features)
+    # np.savetxt(os.path.join(feature_save_dir, 'raw_audio_features.txt'), raw_audio_features)
+    np.savetxt(os.path.join(feature_save_dir, 'visual_features.txt'), visual_features)
+    np.savetxt(os.path.join(feature_save_dir, 'audio_features.txt'), audio_features)
+    np.savetxt(os.path.join(feature_save_dir, 'labels.txt'), labels)
