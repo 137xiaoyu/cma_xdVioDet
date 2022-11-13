@@ -1,6 +1,7 @@
 from sklearn.metrics import auc, precision_recall_curve
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 
 
 def test(dataloader, model, gt):
@@ -14,6 +15,7 @@ def test(dataloader, model, gt):
         model.eval()
         pred = torch.zeros(0).cuda()
 
+        start_index = 0
         for i, (inputs, labels) in enumerate(dataloader):
             inputs = inputs.cuda()
 
@@ -26,6 +28,21 @@ def test(dataloader, model, gt):
             all_visual_features.append(visual_rep.mean(0).mean(0).cpu())
             all_audio_features.append(audio_rep.mean(0).mean(0).cpu())
             all_labels.append(labels.mean(0, keepdim=True).cpu())
+
+            y = np.repeat(logits.cpu().numpy(), 16)
+            y_gt = gt[start_index:start_index + logits.shape[0] * 16]
+            x = np.arange(logits.shape[0] * 16)
+            y_1 = np.ones_like(x)
+            y_0 = np.zeros_like(x)
+
+            plt.figure(1, figsize=(8, 4))
+            plt.clf()
+            plt.plot(x, y)
+            plt.ylim(0, 1)
+            plt.fill_between(x, y_1, y_0, where=(y_gt == 1), color='red', alpha=0.1)
+            plt.tight_layout()
+            plt.show()
+            start_index += logits.shape[0] * 16
 
         pred = list(pred.cpu().detach().numpy())
         precision, recall, th = precision_recall_curve(list(gt), np.repeat(pred, 16))

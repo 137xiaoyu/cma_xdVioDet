@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     test_loader = DataLoader(Dataset(args, test_mode=True),
                               batch_size=5, shuffle=False,
-                              num_workers=args.workers, pin_memory=True)
+                              num_workers=0, pin_memory=True)
     model = Model(args)
     model = model.to(device)
 
